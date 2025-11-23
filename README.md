@@ -4,17 +4,6 @@ Interactive D3.js heatmap comparing adversarial attack strength against differen
 training/defense strategies. The site is completely static (`index.html` + `data.json`),
 so it can be previewed locally with any static file server and deployed via GitHub Pages.
 
-## Local preview
-
-Use any lightweight HTTP server from the repository root so that `index.html` can fetch
-`data.json` without CORS issues. Example using Python:
-
-```powershell
-python -m http.server 8080
-```
-
-Then visit <http://localhost:8080> and interact with the heatmap.
-
 ## GitHub Pages deployment
 
 Deployment is automated through `.github/workflows/deploy-pages.yml` and works as follows:
