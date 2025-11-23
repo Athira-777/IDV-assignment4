@@ -119,6 +119,8 @@
 			.tooltip {
 				position: absolute;
 				pointer-events: none;
+				left: 0;
+				top: 0;
 				background: rgba(2, 6, 23, 0.9);
 				border: 1px solid rgba(226, 232, 240, 0.2);
 				color: #f8fafc;
@@ -127,8 +129,25 @@
 				font-size: 0.9rem;
 				box-shadow: 0 10px 30px rgba(15, 23, 42, 0.55);
 				opacity: 0;
-				transform: translate(0, 0);
-				transition: opacity 120ms ease, transform 120ms ease;
+				transition: opacity 120ms ease;
+				z-index: 5;
+			}
+
+			.button-tooltip {
+				position: fixed;
+				pointer-events: none;
+				background: rgba(15, 23, 42, 0.95);
+				border: 1px solid rgba(148, 163, 184, 0.35);
+				color: #e2e8f0;
+				padding: 0.65rem 0.9rem;
+				border-radius: 12px;
+				font-size: 0.9rem;
+				box-shadow: 0 15px 35px rgba(2, 6, 23, 0.45);
+				opacity: 0;
+				transition: opacity 120ms ease;
+				z-index: 20;
+				max-width: min(320px, 80vw);
+				line-height: 1.4;
 			}
 
 			.legend text {
@@ -190,6 +209,22 @@
 				const chartCard = document.querySelector(".chart-card");
 				const tooltip = d3.select("#tooltip");
 				const buttons = document.querySelectorAll(".control-button");
+				const buttonTooltip = d3
+					.select("body")
+					.append("div")
+					.attr("id", "button-tooltip")
+					.attr("class", "button-tooltip")
+					.attr("role", "tooltip")
+					.attr("aria-hidden", "true");
+
+				const buttonDescriptions = {
+					global:
+						"Ranks attacks by their average accuracy (lower = stronger attack) and defences by their overall mean accuracy (higher = stronger defender) so you can spot the toughest threats and most reliable methods.",
+					tradeoff:
+						"Highlights the clean-versus-robust trade-off: methods are sorted by their average accuracy on adversarial rows while keeping the 'No Attack' baseline on top for a quick clean reference.",
+					gain:
+						"Shows which attacks benefit most from specialised training compared to ERM by sorting rows on the gain between the best robust method and ERM, using the global defence ranking for columns.",
+				};
 
 				// Helper to toggle button states
 				function setActiveButton(mode) {
@@ -363,11 +398,12 @@
 						.on("mousemove", function (event, d) {
 							const [xPos, yPos] = d3.pointer(event, chartCard);
 							tooltip
-								.style("transform", `translate(${xPos + 20}px, ${yPos - 10}px)`)
+								.style("left", `${xPos + 20}px`)
+								.style("top", `${yPos - 10}px`)
 								.html(
-									`<strong>${d.attack}</strong><br />${d.method}<br /><span>${d.value.toFixed(
+									`<strong>${d.attack}</strong><br /><span>${d.method}</span><br /><em>${d.value.toFixed(
 										1
-									)}% accuracy</span>`
+									)}% accuracy</em>`
 								);
 						})
 						.on("mouseleave", function () {
@@ -486,6 +522,26 @@
 							const mode = event.currentTarget.dataset.mode;
 							setActiveButton(mode);
 							applyOrdering(mode);
+						});
+
+						button.addEventListener("mouseenter", (event) => {
+							const mode = event.currentTarget.dataset.mode;
+							const description = buttonDescriptions[mode];
+							if (!description) return;
+							buttonTooltip
+								.html(`<strong>${event.currentTarget.textContent}</strong><br />${description}`)
+								.style("opacity", 1)
+								.attr("aria-hidden", "false");
+						});
+
+						button.addEventListener("mousemove", (event) => {
+							buttonTooltip
+								.style("left", `${event.clientX + 18}px`)
+								.style("top", `${event.clientY + 18}px`);
+						});
+
+						button.addEventListener("mouseleave", () => {
+							buttonTooltip.style("opacity", 0).attr("aria-hidden", "true");
 						});
 					});
 
